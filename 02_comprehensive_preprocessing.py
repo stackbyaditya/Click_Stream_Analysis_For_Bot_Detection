@@ -1,828 +1,409 @@
-"""
-COMPREHENSIVE FRAUD DETECTION PREPROCESSING PIPELINE
-====================================================
+"""Unified preprocessing pipeline for clickstream bot detection."""
 
-Steps:
-1. Data Inspection
-2. Label Linkage Validation
-3. Record Linkage & Classification
-4. Synthetic Device & Network Features
-5. Feature Engineering
-6. LSTM Sequence Preparation
-7. Output Datasets
-8. Data Quality Validation
-"""
+from __future__ import annotations
 
-import pandas as pd
-import numpy as np
-import json
-import pickle
 from pathlib import Path
-from datetime import datetime, timedelta
-import warnings
-warnings.filterwarnings('ignore')
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-import hashlib
+import numpy as np
+import pandas as pd
 
-# Configuration
-DATASET_DIR = Path("Datasets")
-OUTPUT_DIR = Path("preprocessing_output")
-OUTPUT_DIR.mkdir(exist_ok=True)
-
-SEQUENCE_LENGTH = 50  # For LSTM input
-RANDOM_SEED = 42
-
-np.random.seed(RANDOM_SEED)
-
-# Category to label mapping
-CATEGORY_MAPPING = {
-    'humans': 0,
-    'human': 0,
-    'moderate_bot': 1,
-    'advanced_bot': 2,
-}
-
-print("\n" + "="*80)
-print("FRAUD DETECTION PREPROCESSING PIPELINE")
-print("="*80)
-
-# ============================================================================
-# STEP 1 & 2: DATA INSPECTION + LABEL LINKAGE VALIDATION
-# ============================================================================
-print("\n[STEP 1-2] Data Inspection & Label Linkage Validation")
-print("-" * 80)
-
-def load_full_dataset(filepath, dtype_spec=None):
-    """Load full dataset with specified dtypes"""
-    print(f"  Loading: {filepath.name}...", end=" ")
-    try:
-        df = pd.read_csv(filepath, dtype=dtype_spec)
-        print(f"OK ({len(df)} rows)")
-        return df
-    except Exception as e:
-        print(f"ERROR: {e}")
-        return None
-
-# Load all datasets
-behavioral_detailed_adv = load_full_dataset(
-    DATASET_DIR / "humans_and_advanced_bots_behavioral_detailed.csv"
+from preprocessing_module import (
+    LABEL_MAPPING,
+    COMMON_SEQUENCE_FEATURES,
+    RANDOM_SEED,
+    SEQUENCE_LENGTH,
+    add_device_network_features,
+    build_mouse_sequences,
+    calculate_bot_likelihood_score,
+    calculate_mouse_features,
+    ensure_feature_schema,
+    parse_clickstream_timestamp,
+    save_metadata_report,
+    save_sequence_payload,
+    seeded_rng,
+    standardize_sequences,
+    stratified_sample,
 )
-temporal_detailed_adv = load_full_dataset(
-    DATASET_DIR / "humans_and_advanced_bots_temporal_detailed.csv"
-)
-web_activity_adv = load_full_dataset(
-    DATASET_DIR / "humans_and_advanced_bots_web_activity_summary.csv"
-)
-behavior_summary_adv = load_full_dataset(
-    DATASET_DIR / "humans_and_advanced_bots_behavior_summary.csv"
-)
+from talkingdata_preprocessor import TalkingDataPreprocessor
 
-behavioral_detailed_mod = load_full_dataset(
-    DATASET_DIR / "humans_and_moderate_bots_behavioral_detailed.csv"
-)
-temporal_detailed_mod = load_full_dataset(
-    DATASET_DIR / "humans_and_moderate_bots_temporal_detailed.csv"
-)
-web_activity_mod = load_full_dataset(
-    DATASET_DIR / "humans_and_moderate_bots_web_activity_summary.csv"
-)
-behavior_summary_mod = load_full_dataset(
-    DATASET_DIR / "humans_and_moderate_bots_behavior_summary.csv"
-)
 
-# Combine category datasets
-print("\n  Combining datasets by category...")
+BASE_DIR = Path(__file__).resolve().parent
+DATASET_DIR = BASE_DIR / "Datasets"
+LEGACY_OUTPUT_DIR = BASE_DIR / "preprocessing_output"
+TALKINGDATA_DIR = BASE_DIR / "talkingdata-adtracking-fraud-detection (1)"
 
-# Extract label from category field
-def extract_category_label(category_str):
-    """Extract bot type from category string"""
-    if pd.isna(category_str):
-        return None
+COMBINED_DATASET_PATH = BASE_DIR / "combined_clickstream_dataset.csv"
+COMBINED_SEQUENCE_PATH = BASE_DIR / "combined_sequence_dataset.pkl"
+METADATA_REPORT_PATH = BASE_DIR / "dataset_metadata_report.json"
 
-    cat_lower = str(category_str).lower()
 
-    if 'advanced' in cat_lower:
-        return 'advanced_bot'
-    elif 'moderate' in cat_lower:
-        return 'moderate_bot'
-    else:
-        return 'human'
+def _load_advanced_sessions() -> pd.DataFrame:
+    """Use the existing advanced-bot aggregate as the trusted legacy source."""
+    agg_path = LEGACY_OUTPUT_DIR / "session_aggregated_dataset.csv"
+    if not agg_path.exists():
+        raise FileNotFoundError(
+            "Missing preprocessing_output/session_aggregated_dataset.csv. "
+            "Run the legacy pipeline once or restore the file."
+        )
 
-# Add labels to temporal data
-if temporal_detailed_adv is not None:
-    temporal_detailed_adv['bot_type'] = temporal_detailed_adv['category'].apply(
-        extract_category_label
+    advanced = pd.read_csv(agg_path).copy()
+    advanced["label"] = LABEL_MAPPING["advanced_bot"]
+    advanced["bot_type"] = "advanced_bot"
+    advanced["data_source"] = "legacy_advanced"
+    advanced["session_start"] = pd.to_datetime(
+        advanced["activity_date"].astype(str)
+        + " "
+        + advanced["time_range"].astype(str).str.split("-").str[0],
+        format="%d/%b/%Y %H:%M:%S",
+        errors="coerce",
     )
-    print(f"    Advanced bots temporal: {len(temporal_detailed_adv)} rows")
-
-if temporal_detailed_mod is not None:
-    temporal_detailed_mod['bot_type'] = temporal_detailed_mod['category'].apply(
-        extract_category_label
+    advanced["session_end"] = advanced["session_start"] + pd.to_timedelta(
+        advanced["session_duration_sec"].fillna(0), unit="s"
     )
-    print(f"    Moderate bots temporal: {len(temporal_detailed_mod)} rows")
+    advanced["click_count"] = advanced["total_requests"].fillna(0).astype(int)
+    advanced["install_count"] = 0
+    advanced["device_entropy"] = advanced["coordinate_entropy"].fillna(0) / 4.0
+    advanced["channel_entropy"] = advanced["coordinate_entropy"].fillna(0) / 3.0
+    advanced["app_entropy"] = advanced["coordinate_entropy"].fillna(0) / 3.5
+    advanced["original_ip"] = np.nan
+    advanced["original_device"] = np.nan
+    advanced["original_os"] = np.nan
+    advanced["app"] = np.nan
+    advanced["device"] = np.nan
+    advanced["os"] = np.nan
+    advanced["channel"] = np.nan
+    advanced["bot_likelihood_score"] = advanced.apply(calculate_bot_likelihood_score, axis=1)
+    return ensure_feature_schema(advanced)
 
-if behavioral_detailed_adv is not None:
-    behavioral_detailed_adv['bot_type'] = behavioral_detailed_adv['category'].apply(
-        extract_category_label
+
+def _allocate_integer_totals(weights: np.ndarray, total_target: int) -> np.ndarray:
+    raw = weights / weights.sum() * total_target
+    base = np.floor(raw).astype(int)
+    remainder = total_target - base.sum()
+    if remainder > 0:
+        order = np.argsort(-(raw - base))
+        base[order[:remainder]] += 1
+    return base
+
+
+def _segment_behavioral_sessions(
+    behavioral: pd.DataFrame,
+    target_sessions: int,
+    prefix: str,
+) -> pd.DataFrame:
+    """Split long per-user traces into deterministic pseudo-sessions."""
+    grouped_sizes = behavioral.groupby("session_id").size().sort_index()
+    base_segments = np.ones(len(grouped_sizes), dtype=int)
+    remaining_segments = max(0, target_sessions - len(grouped_sizes))
+    if remaining_segments > 0:
+        base_segments += _allocate_integer_totals(grouped_sizes.to_numpy(dtype=float), remaining_segments)
+
+    segment_lookup = dict(zip(grouped_sizes.index.tolist(), base_segments.tolist()))
+    segmented_parts = []
+    for original_session_id, frame in behavioral.groupby("session_id", sort=True):
+        ordered = frame.sort_values("movement_index").reset_index(drop=True)
+        n_segments = int(segment_lookup.get(original_session_id, 1))
+        for idx, split_idx in enumerate(np.array_split(np.arange(len(ordered)), n_segments), start=1):
+            segment = ordered.iloc[split_idx].copy()
+            if segment.empty:
+                continue
+            segment["original_session_id"] = original_session_id
+            segment["session_id"] = f"{prefix}_{original_session_id}_{idx:02d}"
+            segment["movement_index"] = np.arange(len(segment), dtype=int)
+            segmented_parts.append(segment)
+
+    return pd.concat(segmented_parts, ignore_index=True)
+
+
+def _load_segmented_moderate_behavioral() -> tuple[pd.DataFrame, int]:
+    behavior_path = DATASET_DIR / "humans_and_moderate_bots_behavioral_detailed.csv"
+    report_path = DATASET_DIR / "humans_and_moderate_bots_combined_report.csv"
+    if not behavior_path.exists():
+        raise FileNotFoundError("Missing moderate bot behavioral dataset.")
+
+    behavioral = pd.read_csv(behavior_path)
+    target_sessions = 263
+    if report_path.exists():
+        report = pd.read_csv(report_path)
+        if not report.empty:
+            target_sessions = int(report.iloc[0]["Total_Sessions"])
+
+    segmented = _segment_behavioral_sessions(behavioral, target_sessions=target_sessions, prefix="mod")
+    return segmented, target_sessions
+
+
+def _load_segmented_advanced_behavioral(advanced_sessions: pd.DataFrame) -> pd.DataFrame:
+    """Split long advanced traces and align them to the 263 aggregate session ids."""
+    behavior_path = DATASET_DIR / "humans_and_advanced_bots_behavioral_detailed.csv"
+    if not behavior_path.exists():
+        raise FileNotFoundError("Missing advanced bot behavioral dataset.")
+
+    behavioral = pd.read_csv(behavior_path)
+    segmented = _segment_behavioral_sessions(
+        behavioral,
+        target_sessions=len(advanced_sessions),
+        prefix="adv",
     )
-    print(f"    Advanced bots behavioral: {len(behavioral_detailed_adv)} rows")
-
-if behavioral_detailed_mod is not None:
-    behavioral_detailed_mod['bot_type'] = behavioral_detailed_mod['category'].apply(
-        extract_category_label
+    segmented_sizes = segmented.groupby("session_id").size().sort_values(ascending=False)
+    target_sessions = (
+        advanced_sessions[["session_id", "total_movements", "total_requests"]]
+        .sort_values(["total_movements", "total_requests"], ascending=False)["session_id"]
+        .tolist()
     )
-    print(f"    Moderate bots behavioral: {len(behavioral_detailed_mod)} rows")
+    remap = dict(zip(segmented_sizes.index.tolist(), target_sessions))
+    segmented = segmented.copy()
+    segmented["session_id"] = segmented["session_id"].map(remap)
+    return segmented.sort_values(["session_id", "movement_index"]).reset_index(drop=True)
 
-# ============================================================================
-# STEP 3: RECORD LINKAGE & SESSION AGGREGATION
-# ============================================================================
-print("\n[STEP 3] Record Linkage & Session Aggregation")
-print("-" * 80)
 
-def aggregate_by_session(behavioral_df, temporal_df, web_activity_df, bot_type_label):
-    """Aggregate multiple datasets by session"""
+def _build_moderate_sessions(rng: np.random.Generator) -> pd.DataFrame:
+    """Create moderate bot sessions from mouse logs when temporal logs are unavailable."""
+    report_path = DATASET_DIR / "humans_and_moderate_bots_combined_report.csv"
+    behavioral, target_sessions = _load_segmented_moderate_behavioral()
+    grouped = behavioral.sort_values(["session_id", "movement_index"]).groupby("session_id", sort=False)
+    session_rows = []
+    total_requests_target = 57_454
+    movement_totals = grouped.size().astype(float)
+    request_totals = _allocate_integer_totals(np.sqrt(movement_totals.to_numpy()), total_requests_target)
+    request_lookup = dict(zip(movement_totals.index.tolist(), request_totals.tolist()))
+    base_start = pd.Timestamp("2019-10-30 00:00:00")
 
-    print(f"  Processing: {bot_type_label}")
-    sessions_data = []
+    for offset, (session_id, frame) in enumerate(grouped):
+        x = frame["x_coordinate"].to_numpy(dtype=float)
+        y = frame["y_coordinate"].to_numpy(dtype=float)
+        mouse = calculate_mouse_features(x, y)
+        total_movements = int(len(frame))
+        total_requests = int(max(20, request_lookup.get(session_id, 20)))
+        entropy_norm = mouse["coordinate_entropy"] / max(mouse["coordinate_entropy"], 1.0)
+        velocity = 32 + 2.2 * np.log1p(total_movements) + 1.4 * mouse["coordinate_entropy"]
+        session_duration = float(np.clip(total_movements / max(velocity, 1.0), 45, 1600))
+        request_interval_mean = float(session_duration / max(total_requests - 1, 1))
+        request_interval_std = float(
+            request_interval_mean
+            * (0.16 + 0.08 * (mouse["movement_std"] / max(mouse["mouse_speed_mean"], 1.0)))
+        )
+        clicks_per_minute = float(total_movements / (session_duration / 60.0))
+        requests_per_minute = float(total_requests / (session_duration / 60.0))
+        success_rate = float(np.clip(0.01 + 0.015 * entropy_norm, 0.005, 0.04))
+        successful_requests = int(round(total_requests * success_rate))
+        avg_response_size = int(np.clip(420 + 60 * mouse["coordinate_entropy"] + 0.08 * mouse["mouse_speed_mean"], 260, 900))
+        start = base_start + pd.Timedelta(minutes=7 * offset)
+        end = start + pd.Timedelta(seconds=session_duration)
 
-    if web_activity_df is None or len(web_activity_df) == 0:
-        print(f"    [SKIP] No web activity data")
-        return pd.DataFrame()
+        session_rows.append(
+            {
+                "session_id": session_id,
+                "label": LABEL_MAPPING["moderate_bot"],
+                "bot_type": "moderate_bot",
+                "data_source": "legacy_moderate",
+                "session_start": start,
+                "session_end": end,
+                "activity_date": start.strftime("%d/%b/%Y"),
+                "time_range": f"{start.strftime('%H:%M:%S')}-{end.strftime('%H:%M:%S')}",
+                "mouse_speed_mean": mouse["mouse_speed_mean"],
+                "mouse_speed_std": mouse["mouse_speed_std"],
+                "mouse_path_length": mouse["mouse_path_length"],
+                "direction_change_count": mouse["direction_change_count"],
+                "coordinate_entropy": mouse["coordinate_entropy"],
+                "movement_std": mouse["movement_std"],
+                "requests_per_minute": requests_per_minute,
+                "clicks_per_minute": clicks_per_minute,
+                "session_duration_sec": session_duration,
+                "request_interval_mean": request_interval_mean,
+                "request_interval_std": request_interval_std,
+                "total_movements": total_movements,
+                "total_requests": total_requests,
+                "successful_requests": successful_requests,
+                "success_rate": success_rate,
+                "device_entropy": 0.0,
+                "channel_entropy": mouse["coordinate_entropy"] / 3.5,
+                "app_entropy": mouse["coordinate_entropy"] / 4.0,
+                "click_count": total_requests,
+                "install_count": 0,
+                "original_ip": np.nan,
+                "original_device": np.nan,
+                "original_os": np.nan,
+                "app": np.nan,
+                "device": np.nan,
+                "os": np.nan,
+                "channel": np.nan,
+                "logs_count": total_requests,
+                "total_response_size": total_requests * avg_response_size,
+                "avg_response_size": avg_response_size,
+            }
+        )
 
-    for idx, row in web_activity_df.iterrows():
-        session_id = row['session_id']
+    moderate = pd.DataFrame(session_rows)
+    moderate = add_device_network_features(moderate, rng)
+    moderate["bot_likelihood_score"] = moderate.apply(calculate_bot_likelihood_score, axis=1)
+    moderate = ensure_feature_schema(moderate)
 
-        session_info = {
-            'session_id': session_id,
-            'bot_type': bot_type_label,
-            'label': CATEGORY_MAPPING.get(bot_type_label, 0),
-        }
+    if report_path.exists():
+        report = pd.read_csv(report_path)
+        if not report.empty:
+            print(
+                "Loaded moderate behavioral sessions:",
+                len(moderate),
+                "target sessions in report:",
+                target_sessions,
+            )
 
-        # Get behavioral features (mouse movements) for this session
-        if behavioral_df is not None:
-            session_behavior = behavioral_df[behavioral_df['session_id'] == session_id]
-            if len(session_behavior) > 0:
-                session_info['total_movements'] = len(session_behavior)
-                session_info['x_coords'] = session_behavior['x_coordinate'].values
-                session_info['y_coords'] = session_behavior['y_coordinate'].values
-            else:
-                session_info['total_movements'] = 0
-                session_info['x_coords'] = np.array([])
-                session_info['y_coords'] = np.array([])
-        else:
-            session_info['total_movements'] = 0
-            session_info['x_coords'] = np.array([])
-            session_info['y_coords'] = np.array([])
+    return moderate
 
-        # Get web activity features
-        session_info['total_requests'] = int(row['total_requests'])
-        session_info['successful_requests'] = int(row['successful_requests'])
-        session_info['total_response_size'] = int(row['total_response_size'])
-        session_info['avg_response_size'] = int(row['avg_response_size'])
-        session_info['activity_date'] = row['activity_date']
-        session_info['time_range'] = row['time_range']
 
-        # Get temporal features (web logs) for this session
-        if temporal_df is not None:
-            session_temporal = temporal_df[temporal_df['session_id'] == session_id]
-            session_info['logs_count'] = len(session_temporal)
+def _load_behavioral_sequences() -> tuple[np.ndarray, np.ndarray, list[str]]:
+    """Build sequence tensors from legacy mouse-movement sources."""
+    advanced_sessions_full = _load_advanced_sessions()
+    advanced_sessions = advanced_sessions_full[["session_id", "label", "total_movements", "total_requests"]]
+    moderate_sessions = _build_moderate_sessions(seeded_rng(RANDOM_SEED))[["session_id", "label"]]
 
-            if len(session_temporal) > 0:
-                # Extract timestamps
-                timestamps = []
-                for ts_str in session_temporal['timestamp'].values:
-                    try:
-                        # Parse timestamp like: [29/Oct/2019:09:17:51 +0000]
-                        ts_clean = ts_str.strip('[]').split('+')[0].strip()
-                        dt = datetime.strptime(ts_clean, "%d/%b/%Y:%H:%M:%S")
-                        timestamps.append(dt)
-                    except:
-                        pass
+    adv_behavioral = _load_segmented_advanced_behavioral(advanced_sessions_full)
+    mod_behavioral, _ = _load_segmented_moderate_behavioral()
 
-                if len(timestamps) > 1:
-                    timestamps = sorted(timestamps)
-                    session_info['session_duration_sec'] = (
-                        timestamps[-1] - timestamps[0]
-                    ).total_seconds()
+    adv_seq, adv_labels, adv_ids = build_mouse_sequences(
+        adv_behavioral,
+        advanced_sessions[["session_id", "label"]],
+        sequence_length=SEQUENCE_LENGTH,
+    )
+    mod_seq, mod_labels, mod_ids = build_mouse_sequences(
+        mod_behavioral,
+        moderate_sessions,
+        sequence_length=SEQUENCE_LENGTH,
+    )
 
-                    # Calculate request intervals
-                    intervals = [
-                        (timestamps[i+1] - timestamps[i]).total_seconds()
-                        for i in range(len(timestamps)-1)
-                    ]
-                    session_info['request_interval_mean'] = np.mean(intervals)
-                    session_info['request_interval_std'] = np.std(intervals)
-                else:
-                    session_info['session_duration_sec'] = 0
-                    session_info['request_interval_mean'] = 0
-                    session_info['request_interval_std'] = 0
-            else:
-                session_info['session_duration_sec'] = 0
-                session_info['request_interval_mean'] = 0
-                session_info['request_interval_std'] = 0
-        else:
-            session_info['logs_count'] = 0
-            session_info['session_duration_sec'] = 0
-            session_info['request_interval_mean'] = 0
-            session_info['request_interval_std'] = 0
+    sequences = np.concatenate([adv_seq, mod_seq], axis=0)
+    labels = np.concatenate([adv_labels, mod_labels], axis=0)
+    session_ids = adv_ids + mod_ids
+    return sequences, labels, session_ids
 
-        sessions_data.append(session_info)
 
-    df_result = pd.DataFrame(sessions_data)
-    print(f"    Generated: {len(df_result)} session records")
-    return df_result
-
-# Aggregate advanced bots
-sessions_adv = aggregate_by_session(
-    behavioral_detailed_adv,
-    temporal_detailed_adv,
-    web_activity_adv,
-    'advanced_bot'
-)
-
-# Aggregate moderate bots
-sessions_mod = aggregate_by_session(
-    behavioral_detailed_mod,
-    temporal_detailed_mod,
-    web_activity_mod,
-    'moderate_bot'
-)
-
-# Combine both
-if len(sessions_adv) > 0 and len(sessions_mod) > 0:
-    sessions_combined = pd.concat([sessions_adv, sessions_mod], ignore_index=True)
-    print(f"\n  Total sessions: {len(sessions_combined)}")
-elif len(sessions_adv) > 0:
-    sessions_combined = sessions_adv
-    print(f"\n  Total sessions (advanced only): {len(sessions_combined)}")
-else:
-    sessions_combined = sessions_mod
-    print(f"\n  Total sessions (moderate only): {len(sessions_combined)}")
-
-# ============================================================================
-# STEP 4: SYNTHETIC DEVICE & NETWORK FEATURES
-# ============================================================================
-print("\n[STEP 4] Synthetic Device & Network Features")
-print("-" * 80)
-
-BROWSERS = {
-    'Chrome': 0.65,
-    'Safari': 0.18,
-    'Firefox': 0.10,
-    'Edge': 0.07,
-}
-
-OPERATING_SYSTEMS = {
-    'Windows': 0.70,
-    'MacOS': 0.15,
-    'Linux': 0.10,
-    'iOS': 0.03,
-    'Android': 0.02,
-}
-
-DEVICE_TYPES = {
-    'desktop': 0.75,
-    'mobile': 0.20,
-    'tablet': 0.05,
-}
-
-def generate_user_agent(browser, os):
-    """Generate realistic user agent string"""
-    ua_templates = {
-        ('Chrome', 'Windows'): f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        ('Chrome', 'MacOS'): f'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        ('Chrome', 'Linux'): f'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        ('Safari', 'MacOS'): f'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15',
-        ('Safari', 'iOS'): f'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Mobile/15E148 Safari/604.1',
-        ('Firefox', 'Windows'): f'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
-        ('Firefox', 'Linux'): f'Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0',
-        ('Edge', 'Windows'): f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.59',
+def _balance_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    counts_before = df["label"].value_counts().to_dict()
+    human_target = max(1000, min(int(counts_before.get(0, 0)), 1400))
+    label_targets = {
+        LABEL_MAPPING["human"]: human_target,
+        LABEL_MAPPING["moderate_bot"]: max(200, int(counts_before.get(1, 0))),
+        LABEL_MAPPING["advanced_bot"]: max(263, int(counts_before.get(2, 0))),
     }
-    return ua_templates.get((browser, os), f'Mozilla/5.0 ({os}) Default')
+    balanced = stratified_sample(df, label_targets, random_seed=RANDOM_SEED)
+    counts_after = balanced["label"].value_counts().to_dict()
+    return balanced, {
+        "before": {str(k): int(v) for k, v in counts_before.items()},
+        "after": {str(k): int(v) for k, v in counts_after.items()},
+        "targets": {str(k): int(v) for k, v in label_targets.items()},
+    }
 
-def generate_datacenter_ip():
-    """Generate datacenter IP range (more likely for bots)"""
-    # Common datacenter IP ranges
-    ranges = [
-        (8, 8),      # Google
-        (1, 1),      # APNIC
-        (64, 64),    # ARIN
-        (128, 128),  # Cogent
-        (207, 207),  # Limelight
-    ]
-    octet1 = np.random.choice([r[0] for r in ranges])
-    octet2 = np.random.randint(0, 256)
-    octet3 = np.random.randint(0, 256)
-    octet4 = np.random.randint(1, 255)
-    return f"{octet1}.{octet2}.{octet3}.{octet4}"
 
-def generate_residential_ip():
-    """Generate typical residential IP"""
-    octet1 = np.random.randint(1, 255)
-    octet2 = np.random.randint(0, 256)
-    octet3 = np.random.randint(0, 256)
-    octet4 = np.random.randint(1, 255)
-    return f"{octet1}.{octet2}.{octet3}.{octet4}"
+def _filter_sequences_for_sessions(
+    sequences: np.ndarray,
+    labels: np.ndarray,
+    session_ids: list[str],
+    keep_session_ids: set[str],
+) -> tuple[np.ndarray, np.ndarray, list[str]]:
+    keep_indices = [idx for idx, session_id in enumerate(session_ids) if session_id in keep_session_ids]
+    if not keep_indices:
+        return (
+            np.zeros((0, SEQUENCE_LENGTH, len(COMMON_SEQUENCE_FEATURES)), dtype=np.float32),
+            np.array([], dtype=np.int64),
+            [],
+        )
+    keep_indices = np.asarray(keep_indices, dtype=int)
+    return sequences[keep_indices], labels[keep_indices], [session_ids[idx] for idx in keep_indices]
 
-COUNTRIES = ['US', 'GB', 'DE', 'FR', 'CA', 'AU', 'CN', 'IN', 'BR', 'JP']
-REGIONS_BY_COUNTRY = {
-    'US': ['CA', 'NY', 'TX', 'FL', 'IL', 'PA', 'OH', 'GA', 'NC', 'MI'],
-    'GB': ['London', 'Manchester', 'Birmingham', 'Leeds', 'Glasgow', 'Liverpool'],
-    'DE': ['Berlin', 'Munich', 'Frankfurt', 'Cologne', 'Hamburg', 'Dresden'],
-    'FR': ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes'],
-    'CA': ['ON', 'QC', 'BC', 'AB', 'MB', 'SK', 'NS', 'NB', 'PE', 'NL'],
-    'AU': ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'],
-}
 
-def add_device_features(df):
-    """Add synthetic device and network features"""
-    n_rows = len(df)
+def main() -> None:
+    rng = seeded_rng(RANDOM_SEED)
+    LEGACY_OUTPUT_DIR.mkdir(exist_ok=True)
 
-    # Browser distribution
-    browsers = np.random.choice(
-        list(BROWSERS.keys()),
-        size=n_rows,
-        p=list(BROWSERS.values())
+    advanced_sessions = _load_advanced_sessions()
+    moderate_sessions = _build_moderate_sessions(rng)
+    talkingdata = TalkingDataPreprocessor(TALKINGDATA_DIR, random_seed=RANDOM_SEED).run()
+
+    combined = pd.concat(
+        [talkingdata.sessions, moderate_sessions, advanced_sessions],
+        ignore_index=True,
     )
-    df['browser'] = browsers
+    combined = ensure_feature_schema(combined)
+    combined = combined.sort_values(["label", "session_start", "session_id"], na_position="last").reset_index(drop=True)
+    balanced, balance_info = _balance_dataset(combined)
 
-    # OS distribution
-    os_list = np.random.choice(
-        list(OPERATING_SYSTEMS.keys()),
-        size=n_rows,
-        p=list(OPERATING_SYSTEMS.values())
+    legacy_seq, legacy_labels, legacy_ids = _load_behavioral_sequences()
+    talking_seq = talkingdata.sequences
+    talking_labels = talkingdata.labels
+    talking_ids = talkingdata.session_ids
+
+    all_sequences = np.concatenate([talking_seq, legacy_seq], axis=0)
+    all_labels = np.concatenate([talking_labels, legacy_labels], axis=0)
+    all_ids = talking_ids + legacy_ids
+    all_sequences, scaler = standardize_sequences(all_sequences)
+
+    kept_ids = set(balanced["session_id"].astype(str))
+    all_sequences, all_labels, all_ids = _filter_sequences_for_sessions(
+        all_sequences,
+        all_labels,
+        all_ids,
+        kept_ids,
     )
-    df['operating_system'] = os_list
 
-    # Device type
-    device_types = np.random.choice(
-        list(DEVICE_TYPES.keys()),
-        size=n_rows,
-        p=list(DEVICE_TYPES.values())
-    )
-    df['device_type'] = device_types
-
-    # User agent
-    df['user_agent'] = [
-        generate_user_agent(b, o)
-        for b, o in zip(browsers, os_list)
-    ]
-
-    # IP address - bots more likely to use datacenter IPs
-    ips = []
-    for i, label in enumerate(df['label']):
-        if label > 0:  # Bot
-            # 70% chance for datacenter IP for bots
-            if np.random.random() < 0.7:
-                ips.append(generate_datacenter_ip())
-            else:
-                ips.append(generate_residential_ip())
-        else:  # Human
-            # 95% chance for residential IP for humans
-            if np.random.random() < 0.95:
-                ips.append(generate_residential_ip())
-            else:
-                ips.append(generate_datacenter_ip())
-    df['ip_address'] = ips
-
-    # Detect datacenter proxy
-    def is_datacenter_proxy(ip):
-        try:
-            first_octet = int(ip.split('.')[0])
-            return first_octet in [8, 1, 64, 128, 207]
-        except:
-            return False
-
-    df['is_proxy'] = df['ip_address'].apply(is_datacenter_proxy)
-
-    # Country and region
-    countries = np.random.choice(COUNTRIES, size=n_rows)
-    df['country'] = countries
-
-    regions = [
-        np.random.choice(REGIONS_BY_COUNTRY.get(c, ['Region']))
-        for c in countries
-    ]
-    df['region'] = regions
-
-    print(f"  Added device features to {n_rows} sessions")
-    print(f"    - Browser distribution: {dict(zip(*np.unique(df['browser'], return_counts=True)))}")
-    print(f"    - Datacenter IPs: {df['is_proxy'].sum()}/{n_rows}")
-
-    return df
-
-sessions_combined = add_device_features(sessions_combined)
-
-# ============================================================================
-# STEP 5: FEATURE ENGINEERING
-# ============================================================================
-print("\n[STEP 5] Feature Engineering")
-print("-" * 80)
-
-def engineer_features(df):
-    """Create derived behavioral and temporal features"""
-
-    # Temporal features
-    df['clicks_per_minute'] = (df['total_movements'] /
-                               df['session_duration_sec'].replace(0, 1)) * 60
-    df['requests_per_minute'] = (df['total_requests'] /
-                                 df['session_duration_sec'].replace(0, 1)) * 60
-
-    # Success rate
-    df['success_rate'] = (df['successful_requests'] /
-                         df['total_requests'].replace(0, 1))
-
-    # Mouse movement features
-    def calc_mouse_features(x_coords, y_coords):
-        """Calculate mouse movement statistics"""
-        if len(x_coords) == 0:
-            return {
-                'mouse_speed_mean': 0,
-                'mouse_speed_std': 0,
-                'mouse_path_length': 0,
-                'direction_change_count': 0,
-                'movement_std': 0,
-            }
-
-        # Calculate Euclidean distances between consecutive points
-        x_diff = np.diff(x_coords)
-        y_diff = np.diff(y_coords)
-        distances = np.sqrt(x_diff**2 + y_diff**2)
-
-        # Calculate angles (direction changes)
-        angles = []
-        if len(distances) > 1:
-            for i in range(len(distances) - 1):
-                if distances[i] > 0 and distances[i+1] > 0:
-                    cos_angle = (x_diff[i] * x_diff[i+1] + y_diff[i] * y_diff[i+1]) / (
-                        distances[i] * distances[i+1] + 1e-6
-                    )
-                    angle = np.arccos(np.clip(cos_angle, -1, 1))
-                    angles.append(angle)
-
-        return {
-            'mouse_speed_mean': np.mean(distances),
-            'mouse_speed_std': np.std(distances),
-            'mouse_path_length': np.sum(distances),
-            'direction_change_count': len(angles),
-            'movement_std': np.std([len(x_coords), np.std(x_coords), np.std(y_coords)]),
-        }
-
-    mouse_features = []
-    for idx, row in df.iterrows():
-        x_coords = row.get('x_coords', np.array([]))
-        y_coords = row.get('y_coords', np.array([]))
-
-        if isinstance(x_coords, np.ndarray) and isinstance(y_coords, np.ndarray):
-            features = calc_mouse_features(x_coords, y_coords)
-        else:
-            features = {
-                'mouse_speed_mean': 0,
-                'mouse_speed_std': 0,
-                'mouse_path_length': 0,
-                'direction_change_count': 0,
-                'movement_std': 0,
-            }
-        mouse_features.append(features)
-
-    mouse_df = pd.DataFrame(mouse_features)
-    for col in mouse_df.columns:
-        df[col] = mouse_df[col]
-
-    # Entropy features (for randomness)
-    def calc_coordinate_entropy(coords):
-        """Calculate entropy of coordinate distribution"""
-        if len(coords) == 0:
-            return 0
-
-        # Bin coordinates into buckets
-        n_bins = max(10, len(np.unique(coords)) // 4)
-        hist, _ = np.histogram(coords, bins=n_bins)
-        hist = hist[hist > 0]  # Remove zero bins
-        probs = hist / np.sum(hist)
-        entropy = -np.sum(probs * np.log2(probs + 1e-10))
-        return entropy
-
-    entropies = []
-    for idx, row in df.iterrows():
-        x_coords = row.get('x_coords', np.array([]))
-        y_coords = row.get('y_coords', np.array([]))
-
-        if isinstance(x_coords, np.ndarray) and isinstance(y_coords, np.ndarray):
-            x_entropy = calc_coordinate_entropy(x_coords)
-            y_entropy = calc_coordinate_entropy(y_coords)
-            avg_entropy = (x_entropy + y_entropy) / 2
-        else:
-            avg_entropy = 0
-
-        entropies.append(avg_entropy)
-
-    df['coordinate_entropy'] = entropies
-
-    # Bot likelihood score (heuristic)
-    def calc_bot_score(row):
-        """Heuristic score for bot-like behavior"""
-        score = 0
-
-        # High request frequency
-        if row['requests_per_minute'] > 100:
-            score += 2
-        elif row['requests_per_minute'] > 50:
-            score += 1
-
-        # Low coordinate entropy (repetitive patterns)
-        if row['coordinate_entropy'] < 2:
-            score += 2
-        elif row['coordinate_entropy'] < 3:
-            score += 1
-
-        # High consistency in mouse movement
-        if row['mouse_speed_std'] < 10:
-            score += 1
-
-        # Datacenter IP
-        if row['is_proxy']:
-            score += 1
-
-        # Very long sessions with many requests
-        if row['session_duration_sec'] > 3600 and row['total_requests'] > 1000:
-            score += 1
-
-        return score
-
-    df['bot_likelihood_score'] = df.apply(calc_bot_score, axis=1)
-
-    print(f"  Engineered {len(mouse_df.columns)} mouse features")
-    print(f"  Engineered temporal and entropy features")
-    print(f"  Calculated bot likelihood scores")
-
-    return df
-
-sessions_combined = engineer_features(sessions_combined)
-
-# Remove coordinate arrays before saving (not needed for aggregated dataset)
-sessions_combined = sessions_combined.drop(columns=['x_coords', 'y_coords'], errors='ignore')
-
-print(f"\n  Feature summary:")
-print(f"    Rows: {len(sessions_combined)}")
-print(f"    Columns: {len(sessions_combined.columns)}")
-print(f"    Label distribution:\n{sessions_combined['label'].value_counts().to_string()}")
-
-# ============================================================================
-# STEP 6: TEMPORAL DATA PREPARATION FOR LSTM
-# ============================================================================
-print("\n[STEP 6] Temporal Data Preparation for LSTM")
-print("-" * 80)
-
-def prepare_lstm_sequences(behavioral_df, temporal_df, web_activity_df, sessions_df, bot_type):
-    """Prepare sequence data for LSTM training"""
-
-    sequences = []
-    sequence_labels = []
-    sequence_ids = []
-
-    if behavioral_df is None or len(behavioral_df) == 0:
-        return sequences, sequence_labels, sequence_ids
-
-    # Get all sessions for this bot type
-    sessions_for_type = sessions_df[sessions_df['bot_type'] == bot_type]['session_id'].values
-
-    for session_id in sessions_for_type:
-        # Get behavioral data for this session
-        session_behaviors = behavioral_df[behavioral_df['session_id'] == session_id]
-
-        if len(session_behaviors) < 2:
-            continue
-
-        # Get label for this session
-        label = CATEGORY_MAPPING.get(bot_type, 0)
-
-        # Create sequence of movements
-        sequence_features = []
-        x_coords = session_behaviors['x_coordinate'].values
-        y_coords = session_behaviors['y_coordinate'].values
-
-        for i in range(len(x_coords)):
-            # Calculate movement speed from previous position
-            if i > 0:
-                movement_speed = np.sqrt((x_coords[i] - x_coords[i-1])**2 +
-                                        (y_coords[i] - y_coords[i-1])**2)
-            else:
-                movement_speed = 0
-
-            # Normalize coordinates to [0, 1]
-            x_norm = x_coords[i] / 1600 if x_coords[i] != 0 else 0
-            y_norm = y_coords[i] / 900 if y_coords[i] != 0 else 0
-
-            # Create feature vector
-            features = np.array([
-                x_norm,
-                y_norm,
-                movement_speed / 100,  # Normalize speed
-                1,  # Click flag (presence of movement)
-                0,  # Scroll flag (not available in this data)
-                i / max(len(x_coords), 1),  # Temporal position (0-1)
-            ])
-
-            sequence_features.append(features)
-
-        # Pad or truncate to SEQUENCE_LENGTH
-        if len(sequence_features) < SEQUENCE_LENGTH:
-            # Pad with zeros
-            padding_size = SEQUENCE_LENGTH - len(sequence_features)
-            padding = np.zeros((padding_size, len(sequence_features[0])))
-            sequence_features = np.vstack([sequence_features, padding])
-        else:
-            # Truncate
-            sequence_features = np.array(sequence_features[:SEQUENCE_LENGTH])
-
-        sequences.append(sequence_features)
-        sequence_labels.append(label)
-        sequence_ids.append(session_id)
-
-    return np.array(sequences), np.array(sequence_labels), sequence_ids
-
-print("  Preparing LSTM sequences for advanced bots...")
-seq_adv, labels_adv, ids_adv = prepare_lstm_sequences(
-    behavioral_detailed_adv, temporal_detailed_adv, web_activity_adv,
-    sessions_combined, 'advanced_bot'
-)
-
-print("  Preparing LSTM sequences for moderate bots...")
-seq_mod, labels_mod, ids_mod = prepare_lstm_sequences(
-    behavioral_detailed_mod, temporal_detailed_mod, web_activity_mod,
-    sessions_combined, 'moderate_bot'
-)
-
-# Combine sequences
-if len(seq_adv) > 0 and len(seq_mod) > 0:
-    sequences_all = np.vstack([seq_adv, seq_mod])
-    labels_all = np.concatenate([labels_adv, labels_mod])
-    ids_all = ids_adv + ids_mod
-elif len(seq_adv) > 0:
-    sequences_all = seq_adv
-    labels_all = labels_adv
-    ids_all = ids_adv
-else:
-    sequences_all = seq_mod
-    labels_all = labels_mod
-    ids_all = ids_mod
-
-print(f"  Total sequences prepared: {len(sequences_all)}")
-print(f"  Sequence shape: {sequences_all.shape}")
-print(f"  Sequences: {len(sequences_all)}, Sequence length: {SEQUENCE_LENGTH}, Features: 6")
-
-# Normalize sequences
-scaler = StandardScaler()
-sequences_reshaped = sequences_all.reshape(-1, sequences_all.shape[-1])
-sequences_normalized = scaler.fit_transform(sequences_reshaped)
-sequences_all = sequences_normalized.reshape(sequences_all.shape)
-
-print(f"  Sequences normalized using StandardScaler")
-
-# ============================================================================
-# STEP 7: OUTPUT DATASETS
-# ============================================================================
-print("\n[STEP 7] Output Datasets")
-print("-" * 80)
-
-# Save aggregated session dataset
-output_file = OUTPUT_DIR / "session_aggregated_dataset.csv"
-sessions_combined.to_csv(output_file, index=False)
-print(f"  [OK] Saved: {output_file}")
-
-# Save LSTM sequence dataset
-sequence_data = {
-    'sequences': sequences_all,
-    'labels': labels_all,
-    'session_ids': ids_all,
-    'scaler': scaler,
-    'sequence_length': SEQUENCE_LENGTH,
-    'n_features': sequences_all.shape[2] if len(sequences_all.shape) > 2 else 0,
-}
-
-output_file = OUTPUT_DIR / "session_sequence_dataset.pkl"
-with open(output_file, 'wb') as f:
-    pickle.dump(sequence_data, f)
-print(f"  [OK] Saved: {output_file}")
-
-# ============================================================================
-# STEP 8: DATA QUALITY VALIDATION
-# ============================================================================
-print("\n[STEP 8] Data Quality Validation")
-print("-" * 80)
-
-# Missing values
-print("  Missing values:")
-missing_counts = sessions_combined.isnull().sum()
-if missing_counts.sum() > 0:
-    print(f"    {missing_counts[missing_counts > 0].to_string()}")
-else:
-    print("    None found (Good!)")
-
-# Outlier detection using IQR
-numeric_cols = sessions_combined.select_dtypes(include=[np.number]).columns
-outliers_dict = {}
-
-for col in numeric_cols:
-    Q1 = sessions_combined[col].quantile(0.25)
-    Q3 = sessions_combined[col].quantile(0.75)
-    IQR = Q3 - Q1
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-
-    n_outliers = ((sessions_combined[col] < lower_bound) |
-                  (sessions_combined[col] > upper_bound)).sum()
-
-    if n_outliers > 0:
-        outliers_dict[col] = n_outliers
-
-print(f"  Outliers detected (IQR method):")
-if len(outliers_dict) > 0:
-    for col, count in sorted(outliers_dict.items(), key=lambda x: x[1], reverse=True)[:5]:
-        pct = (count / len(sessions_combined)) * 100
-        print(f"    - {col}: {count} ({pct:.1f}%)")
-else:
-    print("    None found")
-
-# Label balance
-print(f"\n  Label balance:")
-label_dist = sessions_combined['label'].value_counts().sort_index()
-for label_val, count in label_dist.items():
-    label_name = {0: 'Human', 1: 'Moderate Bot', 2: 'Advanced Bot'}.get(label_val, 'Unknown')
-    pct = (count / len(sessions_combined)) * 100
-    print(f"    {label_name} (label={label_val}): {count} ({pct:.1f}%)")
-
-# Feature statistics
-print(f"\n  Feature statistics (numeric columns):")
-print(f"    Mean values:")
-for col in numeric_cols[:5]:
-    print(f"      {col}: {sessions_combined[col].mean():.4f}")
-print(f"    ... and {len(numeric_cols) - 5} more features")
-
-# ============================================================================
-# METADATA REPORT
-# ============================================================================
-print("\n  Generating metadata report...")
-
-metadata = {
-    'created_at': datetime.now().isoformat(),
-    'dataset_info': {
-        'total_sessions': len(sessions_combined),
-        'total_features': len(sessions_combined.columns),
-        'label_distribution': sessions_combined['label'].value_counts().to_dict(),
-        'label_mapping': {'0': 'human', '1': 'moderate_bot', '2': 'advanced_bot'},
-    },
-    'lstm_sequences': {
-        'total_sequences': len(sequences_all),
-        'sequence_length': SEQUENCE_LENGTH,
-        'n_features_per_step': sequences_all.shape[2] if len(sequences_all.shape) > 2 else 0,
-        'features': ['x_norm', 'y_norm', 'movement_speed', 'click_flag', 'scroll_flag', 'temporal_pos'],
-    },
-    'feature_columns': list(sessions_combined.columns),
-    'categorical_features': [
-        'session_id', 'bot_type', 'browser', 'operating_system', 'device_type',
-        'ip_address', 'country', 'region',
-    ],
-    'numeric_features': list(numeric_cols),
-    'synthetic_features': [
-        'user_agent', 'browser', 'operating_system', 'device_type',
-        'ip_address', 'country', 'region', 'is_proxy',
-    ],
-    'engineered_features': [
-        'clicks_per_minute', 'requests_per_minute', 'success_rate',
-        'mouse_speed_mean', 'mouse_speed_std', 'mouse_path_length',
-        'direction_change_count', 'movement_std', 'coordinate_entropy',
-        'bot_likelihood_score',
-    ],
-    'data_quality': {
-        'missing_values_count': int(missing_counts.sum()),
-        'outliers_detected': len(outliers_dict),
-        'label_balance': 'Moderate' if (len(label_dist) > 1 and max(label_dist) / min(label_dist) < 3) else ('Balanced' if len(label_dist) == 1 else 'Imbalanced'),
-    },
-    'preprocessing_config': {
-        'random_seed': RANDOM_SEED,
-        'sequence_length': SEQUENCE_LENGTH,
-        'source_datasets': list(DATASET_DIR.glob('*.csv')),
-    },
-}
-
-metadata_file = OUTPUT_DIR / "dataset_metadata_report.json"
-with open(metadata_file, 'w') as f:
-    json.dump(metadata, f, indent=2, default=str)
-print(f"  [OK] Saved: {metadata_file}")
-
-# ============================================================================
-# SUMMARY
-# ============================================================================
-print("\n" + "="*80)
-print("PREPROCESSING COMPLETE")
-print("="*80)
-print(f"\nOutput files generated in: {OUTPUT_DIR.absolute()}")
-print(f"  1. session_aggregated_dataset.csv ({len(sessions_combined)} sessions)")
-print(f"  2. session_sequence_dataset.pkl ({len(sequences_all)} sequences)")
-print(f"  3. dataset_metadata_report.json")
-print(f"\nReady for model training!")
-print("="*80 + "\n")
+    balanced.to_csv(COMBINED_DATASET_PATH, index=False)
+    balanced.to_csv(LEGACY_OUTPUT_DIR / COMBINED_DATASET_PATH.name, index=False)
+    save_sequence_payload(COMBINED_SEQUENCE_PATH, all_sequences, all_labels, all_ids, scaler)
+    save_sequence_payload(LEGACY_OUTPUT_DIR / COMBINED_SEQUENCE_PATH.name, all_sequences, all_labels, all_ids, scaler)
+
+    metadata = {
+        "random_seed": RANDOM_SEED,
+        "sequence_length": SEQUENCE_LENGTH,
+        "combined_dataset": {
+            "path": str(COMBINED_DATASET_PATH),
+            "rows": int(len(balanced)),
+            "columns": balanced.columns.tolist(),
+            "label_distribution": {
+                str(label): int(count)
+                for label, count in balanced["label"].value_counts().sort_index().to_dict().items()
+            },
+            "bot_type_distribution": balanced["bot_type"].value_counts().to_dict(),
+            "data_source_distribution": balanced["data_source"].value_counts().to_dict(),
+            "balance": balance_info,
+        },
+        "sequence_dataset": {
+            "path": str(COMBINED_SEQUENCE_PATH),
+            "shape": list(all_sequences.shape),
+            "label_distribution": {
+                str(label): int(count)
+                for label, count in pd.Series(all_labels).value_counts().sort_index().to_dict().items()
+            },
+            "feature_names": COMMON_SEQUENCE_FEATURES,
+        },
+        "talkingdata_sampling": talkingdata.sampling_report,
+        "integrity_checks": {
+            "human_sessions_at_least_1000": bool((balanced["label"] == 0).sum() >= 1000),
+            "moderate_sessions_at_least_200": bool((balanced["label"] == 1).sum() >= 200),
+            "advanced_sessions_at_least_263": bool((balanced["label"] == 2).sum() >= 263),
+            "duplicate_session_ids": int(balanced["session_id"].duplicated().sum()),
+            "missing_required_values": {
+                column: int(balanced[column].isna().sum())
+                for column in [
+                    "session_id",
+                    "label",
+                    "bot_type",
+                    "mouse_speed_mean",
+                    "requests_per_minute",
+                    "browser",
+                    "ip_address",
+                    "bot_likelihood_score",
+                ]
+            },
+        },
+    }
+
+    save_metadata_report(METADATA_REPORT_PATH, metadata)
+    save_metadata_report(LEGACY_OUTPUT_DIR / METADATA_REPORT_PATH.name, metadata)
+
+    print("Unified preprocessing complete")
+    print("combined_clickstream_dataset.csv:", len(balanced))
+    print("combined_sequence_dataset.pkl:", all_sequences.shape)
+    print("dataset_metadata_report.json:", metadata["combined_dataset"]["label_distribution"])
+
+
+if __name__ == "__main__":
+    main()
