@@ -1,0 +1,187 @@
+{
+  "dataset_shape": [
+    5539,
+    39
+  ],
+  "class_distribution": {
+    "0": 5013,
+    "1": 263,
+    "2": 263
+  },
+  "missing_values": {
+    "session_id": 0,
+    "label": 0,
+    "bot_type": 0,
+    "data_source": 0,
+    "mouse_speed_mean": 0,
+    "mouse_speed_std": 0,
+    "mouse_path_length": 0,
+    "direction_change_count": 0,
+    "movement_std": 0,
+    "coordinate_entropy": 0,
+    "mouse_acceleration_std": 0,
+    "movement_curvature": 0,
+    "session_idle_ratio": 0,
+    "click_interval_entropy": 0,
+    "channel_entropy": 0,
+    "app_entropy": 0,
+    "requests_per_minute": 0,
+    "clicks_per_minute": 0,
+    "session_duration_sec": 0,
+    "request_interval_std": 0,
+    "click_interval_mean": 0,
+    "total_movements": 0,
+    "click_count": 0,
+    "install_count": 0,
+    "successful_requests": 0,
+    "browser": 0,
+    "operating_system": 0,
+    "device_type": 0,
+    "user_agent": 0,
+    "ip_address": 0,
+    "country": 0,
+    "region": 0,
+    "is_proxy": 0,
+    "bot_likelihood_score": 0,
+    "total_response_size": 0,
+    "avg_response_size": 0,
+    "burstiness": 0,
+    "anomaly_score": 0,
+    "label_name": 0
+  },
+  "top_correlations": [
+    {
+      "feature_a": "direction_change_count",
+      "feature_b": "clicks_per_minute",
+      "correlation": 0.988948630866417
+    },
+    {
+      "feature_a": "channel_entropy",
+      "feature_b": "app_entropy",
+      "correlation": 0.9886805163191561
+    },
+    {
+      "feature_a": "successful_requests",
+      "feature_b": "total_response_size",
+      "correlation": 0.9668432829572122
+    },
+    {
+      "feature_a": "direction_change_count",
+      "feature_b": "movement_std",
+      "correlation": 0.9536894976526539
+    },
+    {
+      "feature_a": "request_interval_std",
+      "feature_b": "click_interval_mean",
+      "correlation": 0.9515880450633377
+    },
+    {
+      "feature_a": "coordinate_entropy",
+      "feature_b": "click_interval_entropy",
+      "correlation": 0.9490346921596604
+    },
+    {
+      "feature_a": "movement_std",
+      "feature_b": "clicks_per_minute",
+      "correlation": 0.9440009945795903
+    },
+    {
+      "feature_a": "mouse_speed_mean",
+      "feature_b": "anomaly_score",
+      "correlation": -0.9380877795536501
+    },
+    {
+      "feature_a": "mouse_path_length",
+      "feature_b": "total_movements",
+      "correlation": 0.9350744967222713
+    },
+    {
+      "feature_a": "click_count",
+      "feature_b": "successful_requests",
+      "correlation": 0.9183802110401219
+    }
+  ],
+  "feature_importance_ranking": [
+    {
+      "feature": "num__successful_requests",
+      "importance": 0.07192486763236657
+    },
+    {
+      "feature": "num__install_count",
+      "importance": 0.0646405324666142
+    },
+    {
+      "feature": "num__click_count",
+      "importance": 0.06265132518262645
+    },
+    {
+      "feature": "num__burstiness",
+      "importance": 0.06170042038049352
+    },
+    {
+      "feature": "num__mouse_speed_mean",
+      "importance": 0.060579015589380426
+    },
+    {
+      "feature": "num__total_movements",
+      "importance": 0.05236780757628326
+    },
+    {
+      "feature": "num__coordinate_entropy",
+      "importance": 0.04003207495632613
+    },
+    {
+      "feature": "cat__browser_unknown",
+      "importance": 0.039830761282165866
+    },
+    {
+      "feature": "num__mouse_path_length",
+      "importance": 0.03831559907557182
+    },
+    {
+      "feature": "num__mouse_speed_std",
+      "importance": 0.03570126027179577
+    },
+    {
+      "feature": "cat__operating_system_unknown",
+      "importance": 0.03290247374364069
+    },
+    {
+      "feature": "num__movement_std",
+      "importance": 0.03239434192481714
+    },
+    {
+      "feature": "cat__region_unknown",
+      "importance": 0.03202412082937897
+    },
+    {
+      "feature": "num__clicks_per_minute",
+      "importance": 0.031477279810721154
+    },
+    {
+      "feature": "cat__country_unknown",
+      "importance": 0.02980478001843666
+    },
+    {
+      "feature": "num__mouse_acceleration_std",
+      "importance": 0.029728061064900956
+    },
+    {
+      "feature": "cat__device_type_unknown",
+      "importance": 0.024249269857282308
+    },
+    {
+      "feature": "num__session_duration_sec",
+      "importance": 0.02371202293795387
+    },
+    {
+      "feature": "num__click_interval_mean",
+      "importance": 0.023273012066462404
+    },
+    {
+      "feature": "num__requests_per_minute",
+      "importance": 0.021742298119821715
+    }
+  ],
+  "outlier_count": 168
+}

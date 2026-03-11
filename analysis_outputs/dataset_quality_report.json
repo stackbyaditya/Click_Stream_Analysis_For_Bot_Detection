@@ -1,0 +1,464 @@
+{
+  "dataset_shape": [
+    5539,
+    59
+  ],
+  "label_counts": {
+    "human": 5013,
+    "moderate_bot": 263,
+    "advanced_bot": 263
+  },
+  "missing_value_summary": {
+    "total_response_size": 5276,
+    "avg_response_size": 5276,
+    "click_interval_std": 4612,
+    "device": 526,
+    "channel": 526,
+    "original_ip": 526,
+    "app": 526,
+    "original_os": 526,
+    "os": 526,
+    "click_interval_median": 526,
+    "original_device": 526,
+    "ip_address": 263,
+    "country": 263,
+    "operating_system": 263,
+    "device_type": 263,
+    "user_agent": 263,
+    "region": 263,
+    "browser": 263,
+    "session_id": 0,
+    "data_source": 0,
+    "data_source_detail": 0,
+    "candidate_human": 0,
+    "session_start": 0,
+    "session_end": 0,
+    "activity_date": 0,
+    "label": 0,
+    "bot_type": 0,
+    "session_duration_sec": 0,
+    "clicks_per_minute": 0,
+    "requests_per_minute": 0,
+    "request_interval_entropy": 0,
+    "app_entropy": 0,
+    "channel_entropy": 0,
+    "device_entropy": 0,
+    "click_interval_entropy": 0,
+    "session_idle_ratio": 0,
+    "movement_curvature": 0,
+    "mouse_acceleration_std": 0,
+    "coordinate_entropy": 0,
+    "movement_std": 0,
+    "direction_change_count": 0,
+    "mouse_path_length": 0,
+    "mouse_speed_std": 0,
+    "mouse_speed_mean": 0,
+    "time_range": 0,
+    "success_rate": 0,
+    "click_interval_mean": 0,
+    "total_movements": 0,
+    "total_requests": 0,
+    "click_count": 0,
+    "install_count": 0,
+    "request_interval_mean": 0,
+    "successful_requests": 0,
+    "request_interval_std": 0,
+    "bot_likelihood_score": 0,
+    "is_proxy": 0,
+    "logs_count": 0,
+    "label_name": 0,
+    "burstiness": 0
+  },
+  "top_correlations": [
+    {
+      "feature_a": "original_device",
+      "feature_b": "device",
+      "correlation": 1.0
+    },
+    {
+      "feature_a": "original_os",
+      "feature_b": "os",
+      "correlation": 1.0
+    },
+    {
+      "feature_a": "click_count",
+      "feature_b": "logs_count",
+      "correlation": 1.0
+    },
+    {
+      "feature_a": "request_interval_std",
+      "feature_b": "click_interval_std",
+      "correlation": 1.0
+    },
+    {
+      "feature_a": "total_requests",
+      "feature_b": "click_count",
+      "correlation": 1.0
+    },
+    {
+      "feature_a": "click_interval_entropy",
+      "feature_b": "request_interval_entropy",
+      "correlation": 1.0
+    },
+    {
+      "feature_a": "request_interval_mean",
+      "feature_b": "click_interval_mean",
+      "correlation": 1.0
+    },
+    {
+      "feature_a": "total_requests",
+      "feature_b": "logs_count",
+      "correlation": 1.0
+    },
+    {
+      "feature_a": "direction_change_count",
+      "feature_b": "movement_std",
+      "correlation": 0.9993862192982527
+    },
+    {
+      "feature_a": "successful_requests",
+      "feature_b": "total_response_size",
+      "correlation": 0.9957352568163985
+    }
+  ],
+  "outlier_count": 167,
+  "feature_statistics": {
+    "label": {
+      "mean": 0.14244448456400072,
+      "std": 0.4659581988661974,
+      "min": 0.0,
+      "max": 2.0,
+      "iqr": 0.0
+    },
+    "mouse_speed_mean": {
+      "mean": 184.71267475568476,
+      "std": 75.70921373922383,
+      "min": 0.0,
+      "max": 218.18181818179212,
+      "iqr": 0.0
+    },
+    "mouse_speed_std": {
+      "mean": 6.349819502718285,
+      "std": 8.788671640001372,
+      "min": 0.0,
+      "max": 120.0,
+      "iqr": 0.0
+    },
+    "mouse_path_length": {
+      "mean": 2277.879819218382,
+      "std": 11428.528071369175,
+      "min": 0.0,
+      "max": 181632.2442504136,
+      "iqr": 0.0
+    },
+    "direction_change_count": {
+      "mean": 104.52464343744359,
+      "std": 1057.2957169800134,
+      "min": 0.0,
+      "max": 17759.0,
+      "iqr": 0.0
+    },
+    "movement_std": {
+      "mean": 47.72508955561972,
+      "std": 487.99051172460287,
+      "min": 0.0,
+      "max": 8258.381211641128,
+      "iqr": 0.0
+    },
+    "coordinate_entropy": {
+      "mean": 1.183717558067173,
+      "std": 0.9595466118797357,
+      "min": 0.0,
+      "max": 7.522682010812657,
+      "iqr": 0.0
+    },
+    "mouse_acceleration_std": {
+      "mean": 3.7852389891245903,
+      "std": 2.4834467706272676,
+      "min": 0.0,
+      "max": 63.44408749763733,
+      "iqr": 0.0
+    },
+    "movement_curvature": {
+      "mean": 0.017480448404952543,
+      "std": 0.07011313093112669,
+      "min": 0.0,
+      "max": 1.2674414799396274,
+      "iqr": 0.0
+    },
+    "session_idle_ratio": {
+      "mean": 0.03269897035791852,
+      "std": 0.1333201568392335,
+      "min": 0.0,
+      "max": 0.7071067807870521,
+      "iqr": 0.0
+    },
+    "click_interval_entropy": {
+      "mean": 0.15760397299340653,
+      "std": 0.4514032293605136,
+      "min": -1.4428232973175177e-12,
+      "max": 2.5075606702708857,
+      "iqr": 0.0
+    },
+    "device_entropy": {
+      "mean": 0.01631153031099618,
+      "std": 0.17096660397079835,
+      "min": -1.4428232973175177e-12,
+      "max": 1.8806705027031645,
+      "iqr": 0.0
+    },
+    "channel_entropy": {
+      "mean": 0.19050345578913452,
+      "std": 0.6093604533946807,
+      "min": -1.4428232973175177e-12,
+      "max": 5.199149700521028,
+      "iqr": 0.0
+    },
+    "app_entropy": {
+      "mean": 0.17382781536528263,
+      "std": 0.5482023908340512,
+      "min": -1.4428232973175177e-12,
+      "max": 3.892487968146964,
+      "iqr": 0.0
+    },
+    "request_interval_entropy": {
+      "mean": 0.15760397299340653,
+      "std": 0.4514032293605136,
+      "min": -1.4428232973175177e-12,
+      "max": 2.5075606702708857,
+      "iqr": 0.0
+    },
+    "requests_per_minute": {
+      "mean": 54.48029885095434,
+      "std": 22.220006427879696,
+      "min": 0.0677966101694915,
+      "max": 420.0,
+      "iqr": 0.0
+    },
+    "clicks_per_minute": {
+      "mean": 74.71047271703793,
+      "std": 194.6909542813634,
+      "min": 0.0,
+      "max": 2714.6739130434785,
+      "iqr": 0.0
+    },
+    "session_duration_sec": {
+      "mean": 139.8180176927243,
+      "std": 540.2076815001825,
+      "min": 1.0,
+      "max": 22241.0,
+      "iqr": 0.0
+    },
+    "request_interval_mean": {
+      "mean": 11.142820820812524,
+      "std": 68.83362981072916,
+      "min": 0.0,
+      "max": 885.0,
+      "iqr": 0.0
+    },
+    "request_interval_std": {
+      "mean": 18.79202989778559,
+      "std": 110.42987604137468,
+      "min": 0.0,
+      "max": 2200.6379546952803,
+      "iqr": 0.0
+    },
+    "click_interval_mean": {
+      "mean": 11.142820820812524,
+      "std": 68.83362981072916,
+      "min": 0.0,
+      "max": 885.0,
+      "iqr": 0.0
+    },
+    "click_interval_std": {
+      "mean": 112.28592621772856,
+      "std": 249.7357194950679,
+      "min": 0.0,
+      "max": 2200.6379546952803,
+      "iqr": 52.311951436358825
+    },
+    "total_movements": {
+      "mean": 230.89745441415417,
+      "std": 1211.6373191989842,
+      "min": 0.0,
+      "max": 17761.0,
+      "iqr": 0.0
+    },
+    "total_requests": {
+      "mean": 22.0850333995306,
+      "std": 119.07908573832773,
+      "min": 1.0,
+      "max": 5311.0,
+      "iqr": 0.0
+    },
+    "click_count": {
+      "mean": 22.0850333995306,
+      "std": 119.07908573832773,
+      "min": 1.0,
+      "max": 5311.0,
+      "iqr": 0.0
+    },
+    "install_count": {
+      "mean": 0.9216465065896371,
+      "std": 0.3280238895533269,
+      "min": 0.0,
+      "max": 4.0,
+      "iqr": 0.0
+    },
+    "successful_requests": {
+      "mean": 11.138292110489258,
+      "std": 110.45719465930127,
+      "min": 0.0,
+      "max": 5311.0,
+      "iqr": 0.0
+    },
+    "success_rate": {
+      "mean": 0.9085692549274835,
+      "std": 0.2709774346136173,
+      "min": 0.0,
+      "max": 1.0,
+      "iqr": 0.0
+    },
+    "is_proxy": {
+      "mean": 0.07889510742011194,
+      "std": 0.269574979264176,
+      "min": 0.0,
+      "max": 1.0,
+      "iqr": 0.0
+    },
+    "bot_likelihood_score": {
+      "mean": 4.569308539447554,
+      "std": 1.3957161428781057,
+      "min": 0.6,
+      "max": 8.5,
+      "iqr": 0.0
+    },
+    "original_ip": {
+      "mean": 122683.32435667265,
+      "std": 60008.93824360164,
+      "min": 39.0,
+      "max": 212767.0,
+      "iqr": 99079.0
+    },
+    "original_device": {
+      "mean": 36.01436265709156,
+      "std": 223.3867612815864,
+      "min": 0.0,
+      "max": 3518.0,
+      "iqr": 0.0
+    },
+    "original_os": {
+      "mean": 22.657490524635946,
+      "std": 48.99991432722677,
+      "min": 0.0,
+      "max": 607.0,
+      "iqr": 11.0
+    },
+    "app": {
+      "mean": 32.99261919010573,
+      "std": 41.51639623540837,
+      "min": 0.0,
+      "max": 551.0,
+      "iqr": 20.0
+    },
+    "device": {
+      "mean": 36.01436265709156,
+      "std": 223.3867612815864,
+      "min": 0.0,
+      "max": 3518.0,
+      "iqr": 0.0
+    },
+    "os": {
+      "mean": 22.657490524635946,
+      "std": 48.99991432722677,
+      "min": 0.0,
+      "max": 607.0,
+      "iqr": 11.0
+    },
+    "channel": {
+      "mean": 208.68282465589468,
+      "std": 106.6872134714044,
+      "min": 0.0,
+      "max": 497.0,
+      "iqr": 140.0
+    },
+    "logs_count": {
+      "mean": 22.0850333995306,
+      "std": 119.07908573832773,
+      "min": 1.0,
+      "max": 5311.0,
+      "iqr": 0.0
+    },
+    "total_response_size": {
+      "mean": 127596.0494296578,
+      "std": 210521.74655840514,
+      "min": 9036.0,
+      "max": 2431137.0,
+      "iqr": 107813.0
+    },
+    "avg_response_size": {
+      "mean": 746.8288973384031,
+      "std": 176.47517625475078,
+      "min": 458.0,
+      "max": 1455.0,
+      "iqr": 257.5
+    },
+    "click_interval_median": {
+      "mean": 7.75114701775384,
+      "std": 65.5332448845597,
+      "min": 0.0,
+      "max": 885.0,
+      "iqr": 0.0
+    },
+    "burstiness": {
+      "mean": -0.01365878682732899,
+      "std": 0.1664830366302209,
+      "min": -0.9230004372182676,
+      "max": 0.8340528862701981,
+      "iqr": 0.0
+    }
+  },
+  "top_features": [
+    {
+      "feature": "num__mouse_path_length",
+      "importance": 0.4724254608154297
+    },
+    {
+      "feature": "num__device_entropy",
+      "importance": 0.09653590619564056
+    },
+    {
+      "feature": "num__successful_requests",
+      "importance": 0.08312350511550903
+    },
+    {
+      "feature": "num__total_movements",
+      "importance": 0.07492601871490479
+    },
+    {
+      "feature": "num__coordinate_entropy",
+      "importance": 0.06522613018751144
+    },
+    {
+      "feature": "num__mouse_speed_mean",
+      "importance": 0.06486770510673523
+    },
+    {
+      "feature": "num__session_idle_ratio",
+      "importance": 0.056790903210639954
+    },
+    {
+      "feature": "cat__data_source_legacy_moderate",
+      "importance": 0.05456521734595299
+    },
+    {
+      "feature": "num__success_rate",
+      "importance": 0.02534816972911358
+    },
+    {
+      "feature": "cat__data_source_legacy_advanced",
+      "importance": 0.0028333296068012714
+    }
+  ],
+  "duplicate_sessions": 0
+}
