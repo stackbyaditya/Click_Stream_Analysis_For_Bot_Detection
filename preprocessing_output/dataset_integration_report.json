@@ -1,0 +1,70 @@
+{
+  "label_counts": {
+    "0": 5013,
+    "1": 263,
+    "2": 263
+  },
+  "sample_rows": {
+    "human": [
+      {
+        "session_id": "td_39_0_24_1",
+        "data_source": "talkingdata",
+        "bot_type": "human",
+        "candidate_human": true
+      },
+      {
+        "session_id": "td_206_0_21_1",
+        "data_source": "talkingdata",
+        "bot_type": "human",
+        "candidate_human": true
+      },
+      {
+        "session_id": "td_209_0_24_1",
+        "data_source": "talkingdata",
+        "bot_type": "human",
+        "candidate_human": true
+      }
+    ],
+    "moderate_bot": [
+      {
+        "session_id": "mod_0ht0u328t4mkgi01sp7mm07e01_01",
+        "data_source": "legacy_moderate",
+        "bot_type": "moderate_bot",
+        "candidate_human": false
+      },
+      {
+        "session_id": "mod_0ht0u328t4mkgi01sp7mm07e01_02",
+        "data_source": "legacy_moderate",
+        "bot_type": "moderate_bot",
+        "candidate_human": false
+      },
+      {
+        "session_id": "mod_0oa2dua3mli7mrr32c0gd4o0i2_01",
+        "data_source": "legacy_moderate",
+        "bot_type": "moderate_bot",
+        "candidate_human": false
+      }
+    ],
+    "advanced_bot": [
+      {
+        "session_id": "g2gh9qmk9krld14h5uojlg7g10",
+        "data_source": "legacy_advanced",
+        "bot_type": "advanced_bot",
+        "candidate_human": false
+      },
+      {
+        "session_id": "kaodsjbnqm7umgfvao63d3rihb",
+        "data_source": "legacy_advanced",
+        "bot_type": "advanced_bot",
+        "candidate_human": false
+      },
+      {
+        "session_id": "1aqgqrcuurlmvvbbpirvsh7e53",
+        "data_source": "legacy_advanced",
+        "bot_type": "advanced_bot",
+        "candidate_human": false
+      }
+    ]
+  },
+  "talkingdata_note": "5013 sessions originated from TalkingData."
+}

@@ -1,141 +1,23 @@
 {
   "random_seed": 42,
-  "sequence_length": 50,
-  "combined_dataset": {
-    "path": "C:\\Users\\Aditya Kumar\\Desktop\\Fraud & Bot Detection using Click Analysis\\combined_clickstream_dataset.csv",
-    "rows": 1526,
-    "columns": [
-      "session_id",
-      "label",
-      "bot_type",
-      "data_source",
-      "session_start",
-      "session_end",
-      "activity_date",
-      "time_range",
-      "mouse_speed_mean",
-      "mouse_speed_std",
-      "mouse_path_length",
-      "direction_change_count",
-      "coordinate_entropy",
-      "movement_std",
-      "requests_per_minute",
-      "clicks_per_minute",
-      "session_duration_sec",
-      "request_interval_mean",
-      "request_interval_std",
-      "total_movements",
-      "total_requests",
-      "successful_requests",
-      "success_rate",
-      "browser",
-      "operating_system",
-      "device_type",
-      "user_agent",
-      "ip_address",
-      "country",
-      "region",
-      "is_proxy",
-      "bot_likelihood_score",
-      "device_entropy",
-      "channel_entropy",
-      "app_entropy",
-      "click_count",
-      "install_count",
-      "original_ip",
-      "original_device",
-      "original_os",
-      "app",
-      "device",
-      "os",
-      "channel",
-      "logs_count",
-      "total_response_size",
-      "avg_response_size"
-    ],
-    "label_distribution": {
-      "0": 1000,
-      "1": 263,
-      "2": 263
-    },
-    "bot_type_distribution": {
-      "human": 1000,
-      "moderate_bot": 263,
-      "advanced_bot": 263
-    },
-    "data_source_distribution": {
-      "talkingdata": 1000,
-      "legacy_moderate": 263,
-      "legacy_advanced": 263
-    },
-    "balance": {
-      "before": {
-        "0": 1000,
-        "1": 263,
-        "2": 263
-      },
-      "after": {
-        "0": 1000,
-        "1": 263,
-        "2": 263
-      },
-      "targets": {
-        "0": 1000,
-        "1": 263,
-        "2": 263
-      }
-    }
+  "talkingdata_path": "talkingdata-adtracking-fraud-detection (1)",
+  "label_distribution": {
+    "0": 5013,
+    "1": 263,
+    "2": 263
   },
-  "sequence_dataset": {
-    "path": "C:\\Users\\Aditya Kumar\\Desktop\\Fraud & Bot Detection using Click Analysis\\combined_sequence_dataset.pkl",
-    "shape": [
-      1526,
-      50,
-      5
-    ],
-    "label_distribution": {
-      "0": 1000,
-      "1": 263,
-      "2": 263
-    },
-    "feature_names": [
-      "timestamp_delta",
-      "click_frequency",
-      "session_progress",
-      "device_entropy",
-      "channel_entropy"
-    ]
+  "augmentation": {
+    "performed": false,
+    "method": "bootstrap",
+    "generated": 0
   },
-  "talkingdata_sampling": {
-    "train_chunks_read": 5,
-    "sampled_train_rows": 146477,
-    "sampled_train_positive_rows": 6477,
-    "sampled_train_negative_rows": 140000,
-    "sampled_test_rows": 120000,
-    "test_chunks_read": 1,
-    "background_session_count": 104717,
-    "human_session_count": 1000,
-    "thresholds": {
-      "rpm_high": 120.0,
-      "interval_low": 0.0,
-      "interval_std_low": 0.0,
-      "channel_entropy_low": -0.0
-    }
-  },
-  "integrity_checks": {
-    "human_sessions_at_least_1000": true,
-    "moderate_sessions_at_least_200": true,
-    "advanced_sessions_at_least_263": true,
-    "duplicate_session_ids": 0,
-    "missing_required_values": {
-      "session_id": 0,
-      "label": 0,
-      "bot_type": 0,
-      "mouse_speed_mean": 0,
-      "requests_per_minute": 0,
-      "browser": 0,
-      "ip_address": 0,
-      "bot_likelihood_score": 0
-    }
+  "sequence_shape": [
+    5539,
+    50,
+    6
+  ],
+  "sequence_type_counts": {
+    "click-mode": 5013,
+    "mouse-mode": 526
   }
 }
