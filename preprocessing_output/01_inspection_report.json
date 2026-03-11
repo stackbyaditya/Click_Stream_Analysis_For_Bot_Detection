@@ -1,0 +1,309 @@
+{
+  "humans_and_advanced_bots_behavior_summary": {
+    "name": "humans_and_advanced_bots_behavior_summary",
+    "filepath": "Datasets\\humans_and_advanced_bots_behavior_summary.csv",
+    "shape": [
+      100,
+      10
+    ],
+    "columns": [
+      "user_id",
+      "total_movements",
+      "x_mean",
+      "x_std",
+      "x_min",
+      "x_max",
+      "y_mean",
+      "y_std",
+      "y_min",
+      "y_max"
+    ],
+    "dtypes": {
+      "user_id": "str",
+      "total_movements": "int64",
+      "x_mean": "float64",
+      "x_std": "float64",
+      "x_min": "int64",
+      "x_max": "int64",
+      "y_mean": "float64",
+      "y_std": "float64",
+      "y_min": "int64",
+      "y_max": "int64"
+    },
+    "linking_keys": [
+      "user_id"
+    ],
+    "has_label": false,
+    "label_columns": [],
+    "loaded": true
+  },
+  "humans_and_advanced_bots_behavioral_detailed": {
+    "name": "humans_and_advanced_bots_behavioral_detailed",
+    "filepath": "Datasets\\humans_and_advanced_bots_behavioral_detailed.csv",
+    "shape": [
+      5,
+      6
+    ],
+    "columns": [
+      "user_id",
+      "session_id",
+      "category",
+      "movement_index",
+      "x_coordinate",
+      "y_coordinate"
+    ],
+    "dtypes": {
+      "user_id": "str",
+      "session_id": "str",
+      "category": "str",
+      "movement_index": "int64",
+      "x_coordinate": "int64",
+      "y_coordinate": "int64"
+    },
+    "linking_keys": [
+      "user_id",
+      "session_id",
+      "category"
+    ],
+    "has_label": true,
+    "label_columns": [
+      "category"
+    ],
+    "loaded": true
+  },
+  "humans_and_advanced_bots_temporal_detailed": {
+    "name": "humans_and_advanced_bots_temporal_detailed",
+    "filepath": "Datasets\\humans_and_advanced_bots_temporal_detailed.csv",
+    "shape": [
+      5,
+      14
+    ],
+    "columns": [
+      "source_file",
+      "category",
+      "ip",
+      "timestamp",
+      "method",
+      "path",
+      "http_version",
+      "status_code",
+      "response_size",
+      "referrer",
+      "session_id",
+      "user_agent",
+      "date",
+      "time"
+    ],
+    "dtypes": {
+      "source_file": "str",
+      "category": "str",
+      "ip": "float64",
+      "timestamp": "str",
+      "method": "str",
+      "path": "str",
+      "http_version": "str",
+      "status_code": "int64",
+      "response_size": "int64",
+      "referrer": "str",
+      "session_id": "str",
+      "user_agent": "str",
+      "date": "str",
+      "time": "str"
+    },
+    "linking_keys": [
+      "category",
+      "timestamp",
+      "session_id",
+      "user_agent",
+      "time"
+    ],
+    "has_label": true,
+    "label_columns": [
+      "category"
+    ],
+    "loaded": true
+  },
+  "humans_and_advanced_bots_web_activity_summary": {
+    "name": "humans_and_advanced_bots_web_activity_summary",
+    "filepath": "Datasets\\humans_and_advanced_bots_web_activity_summary.csv",
+    "shape": [
+      263,
+      8
+    ],
+    "columns": [
+      "session_id",
+      "total_requests",
+      "successful_requests",
+      "success_rate",
+      "total_response_size",
+      "avg_response_size",
+      "activity_date",
+      "time_range"
+    ],
+    "dtypes": {
+      "session_id": "str",
+      "total_requests": "int64",
+      "successful_requests": "int64",
+      "success_rate": "str",
+      "total_response_size": "int64",
+      "avg_response_size": "int64",
+      "activity_date": "str",
+      "time_range": "str"
+    },
+    "linking_keys": [
+      "session_id",
+      "time_range"
+    ],
+    "has_label": false,
+    "label_columns": [],
+    "loaded": true
+  },
+  "humans_and_advanced_bots_combined_report": {
+    "name": "humans_and_advanced_bots_combined_report",
+    "filepath": "Datasets\\humans_and_advanced_bots_combined_report.csv",
+    "shape": [
+      1,
+      7
+    ],
+    "columns": [
+      "Category",
+      "Total_Users",
+      "Total_Movements",
+      "Total_Sessions",
+      "Total_Requests",
+      "Avg_Movements_per_User",
+      "Avg_Requests_per_Session"
+    ],
+    "dtypes": {
+      "Category": "str",
+      "Total_Users": "int64",
+      "Total_Movements": "int64",
+      "Total_Sessions": "int64",
+      "Total_Requests": "int64",
+      "Avg_Movements_per_User": "int64",
+      "Avg_Requests_per_Session": "int64"
+    },
+    "linking_keys": [
+      "Category",
+      "Total_Users",
+      "Total_Sessions",
+      "Avg_Movements_per_User",
+      "Avg_Requests_per_Session"
+    ],
+    "has_label": true,
+    "label_columns": [
+      "Category"
+    ],
+    "loaded": true
+  },
+  "humans_and_moderate_bots_behavior_summary": {
+    "name": "humans_and_moderate_bots_behavior_summary",
+    "filepath": "Datasets\\humans_and_moderate_bots_behavior_summary.csv",
+    "shape": [
+      100,
+      10
+    ],
+    "columns": [
+      "user_id",
+      "total_movements",
+      "x_mean",
+      "x_std",
+      "x_min",
+      "x_max",
+      "y_mean",
+      "y_std",
+      "y_min",
+      "y_max"
+    ],
+    "dtypes": {
+      "user_id": "str",
+      "total_movements": "int64",
+      "x_mean": "float64",
+      "x_std": "float64",
+      "x_min": "int64",
+      "x_max": "int64",
+      "y_mean": "float64",
+      "y_std": "float64",
+      "y_min": "int64",
+      "y_max": "int64"
+    },
+    "linking_keys": [
+      "user_id"
+    ],
+    "has_label": false,
+    "label_columns": [],
+    "loaded": true
+  },
+  "humans_and_moderate_bots_behavioral_detailed": {
+    "name": "humans_and_moderate_bots_behavioral_detailed",
+    "filepath": "Datasets\\humans_and_moderate_bots_behavioral_detailed.csv",
+    "shape": [
+      5,
+      6
+    ],
+    "columns": [
+      "user_id",
+      "session_id",
+      "category",
+      "movement_index",
+      "x_coordinate",
+      "y_coordinate"
+    ],
+    "dtypes": {
+      "user_id": "str",
+      "session_id": "str",
+      "category": "str",
+      "movement_index": "int64",
+      "x_coordinate": "int64",
+      "y_coordinate": "int64"
+    },
+    "linking_keys": [
+      "user_id",
+      "session_id",
+      "category"
+    ],
+    "has_label": true,
+    "label_columns": [
+      "category"
+    ],
+    "loaded": true
+  },
+  "humans_and_moderate_bots_combined_report": {
+    "name": "humans_and_moderate_bots_combined_report",
+    "filepath": "Datasets\\humans_and_moderate_bots_combined_report.csv",
+    "shape": [
+      1,
+      7
+    ],
+    "columns": [
+      "Category",
+      "Total_Users",
+      "Total_Movements",
+      "Total_Sessions",
+      "Total_Requests",
+      "Avg_Movements_per_User",
+      "Avg_Requests_per_Session"
+    ],
+    "dtypes": {
+      "Category": "str",
+      "Total_Users": "int64",
+      "Total_Movements": "int64",
+      "Total_Sessions": "int64",
+      "Total_Requests": "int64",
+      "Avg_Movements_per_User": "int64",
+      "Avg_Requests_per_Session": "int64"
+    },
+    "linking_keys": [
+      "Category",
+      "Total_Users",
+      "Total_Sessions",
+      "Avg_Movements_per_User",
+      "Avg_Requests_per_Session"
+    ],
+    "has_label": true,
+    "label_columns": [
+      "Category"
+    ],
+    "loaded": true
+  }
+}

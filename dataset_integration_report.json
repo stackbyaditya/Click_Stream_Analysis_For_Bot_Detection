@@ -1,0 +1,303 @@
+{
+  "random_seed": 42,
+  "talkingdata_inspection": {
+    "row_count": 100000,
+    "column_names": [
+      "ip",
+      "app",
+      "device",
+      "os",
+      "channel",
+      "click_time",
+      "attributed_time",
+      "is_attributed"
+    ],
+    "missing_values": {
+      "ip": 0,
+      "app": 0,
+      "device": 0,
+      "os": 0,
+      "channel": 0,
+      "click_time": 0,
+      "attributed_time": 99773,
+      "is_attributed": 0
+    },
+    "timestamp_range": {
+      "click_time_min": "2017-11-06T16:00:00",
+      "click_time_max": "2017-11-09T15:59:51"
+    },
+    "categorical_distributions": {
+      "app": {
+        "3": 0.18279,
+        "12": 0.13198,
+        "2": 0.11737,
+        "9": 0.08992,
+        "15": 0.08595,
+        "18": 0.08315,
+        "14": 0.05359,
+        "1": 0.03135,
+        "13": 0.02422,
+        "8": 0.02004
+      },
+      "device": {
+        "1": 0.94338,
+        "2": 0.04345,
+        "0": 0.00541,
+        "3032": 0.00371,
+        "3543": 0.00151,
+        "3866": 0.00093,
+        "59": 0.00012,
+        "6": 8e-05,
+        "16": 7e-05,
+        "5": 7e-05
+      },
+      "os": {
+        "19": 0.2387,
+        "13": 0.21223,
+        "17": 0.05232,
+        "18": 0.0483,
+        "22": 0.04039,
+        "10": 0.02816,
+        "8": 0.02775,
+        "6": 0.0252,
+        "15": 0.02396,
+        "20": 0.02347
+      },
+      "channel": {
+        "280": 0.08114,
+        "245": 0.04802,
+        "107": 0.04543,
+        "477": 0.0396,
+        "134": 0.03224,
+        "259": 0.0313,
+        "265": 0.03013,
+        "153": 0.02954,
+        "178": 0.02936,
+        "121": 0.02472
+      },
+      "is_attributed": {
+        "0": 0.99773,
+        "1": 0.00227
+      }
+    },
+    "unique_counts": {
+      "ip": 34857,
+      "device": 100,
+      "app": 161,
+      "channel": 161
+    },
+    "top_ip_distribution": {
+      "5348": 669,
+      "5314": 616,
+      "73487": 439,
+      "73516": 399,
+      "53454": 280,
+      "114276": 219,
+      "26995": 218,
+      "95766": 205,
+      "17149": 186,
+      "100275": 173
+    },
+    "top_device_distribution": {
+      "1": 94338,
+      "2": 4345,
+      "0": 541,
+      "3032": 371,
+      "3543": 151,
+      "3866": 93,
+      "59": 12,
+      "6": 8,
+      "16": 7,
+      "5": 7
+    },
+    "top_app_distribution": {
+      "3": 18279,
+      "12": 13198,
+      "2": 11737,
+      "9": 8992,
+      "15": 8595,
+      "18": 8315,
+      "14": 5359,
+      "1": 3135,
+      "13": 2422,
+      "8": 2004
+    }
+  },
+  "intermediate_output": {
+    "talkingdata_human_candidates_rows": 100000,
+    "talkingdata_label_distribution": {
+      "0": 100000
+    }
+  },
+  "sessionization": {
+    "talkingdata_session_rows": 97802,
+    "talkingdata_session_label_distribution": {
+      "1": 95950,
+      "0": 1852
+    },
+    "duplicate_session_ids": 0
+  },
+  "combined_dataset": {
+    "rows": 3704,
+    "columns": [
+      "session_id",
+      "data_source",
+      "bot_type",
+      "label",
+      "session_start",
+      "session_end",
+      "year",
+      "month",
+      "day",
+      "hour",
+      "minute",
+      "second",
+      "activity_date",
+      "time_range",
+      "click_count",
+      "total_requests",
+      "successful_requests",
+      "install_count",
+      "logs_count",
+      "session_duration_sec",
+      "click_interval_mean",
+      "click_interval_std",
+      "request_interval_mean",
+      "request_interval_std",
+      "clicks_per_minute",
+      "requests_per_minute",
+      "device_entropy",
+      "channel_entropy",
+      "app_entropy",
+      "ip_click_frequency",
+      "device_click_frequency",
+      "ip_install_rate",
+      "combo_repeat_rate",
+      "success_rate",
+      "mouse_speed_mean",
+      "mouse_speed_std",
+      "mouse_path_length",
+      "direction_change_count",
+      "hover_time_mean",
+      "hover_time_std",
+      "scroll_count",
+      "scroll_depth",
+      "coordinate_entropy",
+      "cursor_acceleration_std",
+      "movement_std",
+      "bot_likelihood_score",
+      "browser",
+      "operating_system",
+      "device_type",
+      "user_agent",
+      "ip_address",
+      "country",
+      "region",
+      "is_proxy",
+      "original_ip",
+      "original_device",
+      "original_os",
+      "app",
+      "device",
+      "os",
+      "channel",
+      "total_response_size",
+      "avg_response_size"
+    ],
+    "class_balance": {
+      "0": 1852,
+      "1": 1852
+    },
+    "balance_operation": {
+      "before": {
+        "1": 96213,
+        "0": 1852
+      },
+      "after": {
+        "0": 1852,
+        "1": 1852
+      },
+      "minority_count": 1852,
+      "majority_label_downsampled": 1
+    },
+    "source_balance": {
+      "talkingdata": 3700,
+      "existing_clickstream": 4
+    },
+    "missing_values": {},
+    "outliers": {
+      "ip_click_frequency": 614,
+      "ip_install_rate": 424,
+      "session_duration_sec": 307,
+      "mouse_speed_mean": 269,
+      "device_click_frequency": 252,
+      "successful_requests": 231,
+      "success_rate": 231,
+      "install_count": 227,
+      "click_interval_mean": 214,
+      "request_interval_mean": 214,
+      "click_interval_std": 191,
+      "request_interval_std": 191,
+      "mouse_path_length": 150,
+      "direction_change_count": 109,
+      "click_count": 101,
+      "total_requests": 101,
+      "logs_count": 101,
+      "scroll_count": 45,
+      "channel_entropy": 26,
+      "bot_likelihood_score": 24
+    },
+    "selected_correlations": {
+      "mouse_speed_mean__mouse_path_length": 0.526436,
+      "mouse_speed_std__cursor_acceleration_std": 0.996561,
+      "coordinate_entropy__direction_change_count": 0.226563,
+      "requests_per_minute__label": 0.882795,
+      "is_proxy__label": 0.656766
+    },
+    "behavior_summary_by_label": {
+      "0": {
+        "mouse_speed_mean": 153.1083,
+        "mouse_speed_std": 126.1531,
+        "coordinate_entropy": 7.0992,
+        "requests_per_minute": 8.1482,
+        "scroll_depth": 93.101,
+        "hover_time_mean": 3.0085
+      },
+      "1": {
+        "mouse_speed_mean": 131.2305,
+        "mouse_speed_std": 16.5515,
+        "coordinate_entropy": 1.3774,
+        "requests_per_minute": 59.9806,
+        "scroll_depth": 13.2375,
+        "hover_time_mean": 1.0207
+      }
+    }
+  },
+  "sequence_dataset": {
+    "shape": [
+      3698,
+      50,
+      6
+    ],
+    "label_distribution": {
+      "0": 1849,
+      "1": 1849
+    },
+    "feature_names": [
+      "timestamp_delta",
+      "mouse_speed",
+      "mouse_direction",
+      "click_flag",
+      "scroll_flag",
+      "movement_entropy"
+    ]
+  },
+  "integrity_checks": {
+    "combined_has_missing_labels": false,
+    "combined_has_duplicate_sessions": false,
+    "synthetic_feature_correlations_reasonable": true
+  },
+  "dependencies": {
+    "faker_available": true
+  }
+}

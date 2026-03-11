@@ -1,0 +1,193 @@
+# ============================================================================
+# Large Dataset Files - DO NOT COMMIT
+# ============================================================================
+*.csv
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.joblib
+*.npy
+*.npz
+
+# Specific dataset files
+train.csv
+test.csv
+sample_submission.csv
+test_supplement.csv
+talkingdata_session_features.csv
+talkingdata_human_candidates.csv
+
+# Dataset directories
+data/
+datasets/
+Datasets/
+talkingdata-adtracking-fraud-detection/
+raw_data/
+processed_data/
+
+
+# ============================================================================
+# Compressed Archives
+# ============================================================================
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+*.rar
+*.gz
+
+
+# ============================================================================
+# Python Environment & Virtual Environments
+# ============================================================================
+venv/
+env/
+ENV/
+.venv
+.env
+.env.local
+.env.*.local
+*.egg-info/
+dist/
+build/
+*.egg
+
+
+# ============================================================================
+# Python Cache & Compiled Files
+# ============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.c
+*.so
+*.o
+*.a
+
+
+# ============================================================================
+# Jupyter Notebook
+# ============================================================================
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+.jupyter/
+
+
+# ============================================================================
+# IDEs & Editor Settings
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.sublime-project
+.sublime-workspace
+*.code-workspace
+.editorconfig
+
+
+# ============================================================================
+# Operating System Files
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.lnk
+
+
+# ============================================================================
+# Logs & Temporary Files
+# ============================================================================
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+*.swp
+~*
+.tmp/
+
+
+# ============================================================================
+# IDE & Development Tools
+# ============================================================================
+.pylintrc
+.flake8
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+
+
+# ============================================================================
+# Model & Checkpoint Files (Optional - uncomment if needed)
+# ============================================================================
+# *.model
+# *.weights
+# *.pt
+# *.pth
+# checkpoints/
+# saved_models/
+
+
+# ============================================================================
+# ML/Data Science Specific
+# ============================================================================
+wandb/
+mlruns/
+outputs/
+experiments/
+runs/
+.neptune/
+
+
+# ============================================================================
+# VS Code Python Extensions
+# ============================================================================
+.vscode-server/
+*.code-workspace
+
+
+# ============================================================================
+# Git-related (if using Git LFS or similar)
+# ============================================================================
+.gitattributes
+
+
+# ============================================================================
+# Docker (if applicable)
+# ============================================================================
+# .dockerignore
+# docker-compose.override.yml
+
+
+# ============================================================================
+# Node.js (for clickstream-collector-vercel)
+# ============================================================================
+node_modules/
+npm-debug.log
+package-lock.json
+yarn.lock
+.npm
+
+
+# ============================================================================
+# Keep Important Files (Exceptions)
+# ============================================================================
+# Use "!" to exclude files from being ignored
+# !.gitkeep
+# !README.md
+# !requirements.txt

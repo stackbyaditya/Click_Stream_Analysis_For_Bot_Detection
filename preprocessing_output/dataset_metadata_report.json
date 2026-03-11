@@ -1,0 +1,135 @@
+{
+  "created_at": "2026-03-10T13:53:46.388237",
+  "dataset_info": {
+    "total_sessions": 263,
+    "total_features": 32,
+    "label_distribution": {
+      "2": 263
+    },
+    "label_mapping": {
+      "0": "human",
+      "1": "moderate_bot",
+      "2": "advanced_bot"
+    }
+  },
+  "lstm_sequences": {
+    "total_sequences": 50,
+    "sequence_length": 50,
+    "n_features_per_step": 6,
+    "features": [
+      "x_norm",
+      "y_norm",
+      "movement_speed",
+      "click_flag",
+      "scroll_flag",
+      "temporal_pos"
+    ]
+  },
+  "feature_columns": [
+    "session_id",
+    "bot_type",
+    "label",
+    "total_movements",
+    "total_requests",
+    "successful_requests",
+    "total_response_size",
+    "avg_response_size",
+    "activity_date",
+    "time_range",
+    "logs_count",
+    "session_duration_sec",
+    "request_interval_mean",
+    "request_interval_std",
+    "browser",
+    "operating_system",
+    "device_type",
+    "user_agent",
+    "ip_address",
+    "is_proxy",
+    "country",
+    "region",
+    "clicks_per_minute",
+    "requests_per_minute",
+    "success_rate",
+    "mouse_speed_mean",
+    "mouse_speed_std",
+    "mouse_path_length",
+    "direction_change_count",
+    "movement_std",
+    "coordinate_entropy",
+    "bot_likelihood_score"
+  ],
+  "categorical_features": [
+    "session_id",
+    "bot_type",
+    "browser",
+    "operating_system",
+    "device_type",
+    "ip_address",
+    "country",
+    "region"
+  ],
+  "numeric_features": [
+    "label",
+    "total_movements",
+    "total_requests",
+    "successful_requests",
+    "total_response_size",
+    "avg_response_size",
+    "logs_count",
+    "session_duration_sec",
+    "request_interval_mean",
+    "request_interval_std",
+    "clicks_per_minute",
+    "requests_per_minute",
+    "success_rate",
+    "mouse_speed_mean",
+    "mouse_speed_std",
+    "mouse_path_length",
+    "direction_change_count",
+    "movement_std",
+    "coordinate_entropy",
+    "bot_likelihood_score"
+  ],
+  "synthetic_features": [
+    "user_agent",
+    "browser",
+    "operating_system",
+    "device_type",
+    "ip_address",
+    "country",
+    "region",
+    "is_proxy"
+  ],
+  "engineered_features": [
+    "clicks_per_minute",
+    "requests_per_minute",
+    "success_rate",
+    "mouse_speed_mean",
+    "mouse_speed_std",
+    "mouse_path_length",
+    "direction_change_count",
+    "movement_std",
+    "coordinate_entropy",
+    "bot_likelihood_score"
+  ],
+  "data_quality": {
+    "missing_values_count": 0,
+    "outliers_detected": 17,
+    "label_balance": "Balanced"
+  },
+  "preprocessing_config": {
+    "random_seed": 42,
+    "sequence_length": 50,
+    "source_datasets": [
+      "Datasets\\humans_and_advanced_bots_behavioral_detailed.csv",
+      "Datasets\\humans_and_advanced_bots_behavior_summary.csv",
+      "Datasets\\humans_and_advanced_bots_combined_report.csv",
+      "Datasets\\humans_and_advanced_bots_temporal_detailed.csv",
+      "Datasets\\humans_and_advanced_bots_web_activity_summary.csv",
+      "Datasets\\humans_and_moderate_bots_behavioral_detailed.csv",
+      "Datasets\\humans_and_moderate_bots_behavior_summary.csv",
+      "Datasets\\humans_and_moderate_bots_combined_report.csv"
+    ]
+  }
+}
