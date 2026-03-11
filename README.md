@@ -551,37 +551,6 @@ LABEL_MAPPING = {
 }
 ```
 
----
-
-## 🚨 Troubleshooting
-
-### Issue: "Windows Long Path" Error
-```
-ERROR: OSError: No such file or directory: '...tensorflow...upb_minitable.h'
-```
-**Solution**: Enable Windows Long Path support
-```powershell
-# Run as Administrator
-New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
-  -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
-```
-Then restart your computer.
-
-### Issue: Missing TalkingData Files
-**Solution**: Download from Kaggle:
-```bash
-# Requires Kaggle API setup
-kaggle competitions download -c talkingdata-adtracking-fraud-detection
-unzip talkingdata-adtracking-fraud-detection.zip
-```
-
-### Issue: Out of Memory (OOM)
-**Solution**: Process TalkingData in chunks (already implemented):
-```python
-# Automatically handled in talkingdata_preprocessor.py
-for chunk in pd.read_csv('train.csv', chunksize=750_000):
-    # Process chunk
-```
 
 ---
 
@@ -708,24 +677,7 @@ LSTM Model:
 
 ---
 
-## 🤝 Contributing
 
-### Development Setup
-
-```bash
-# Clone and setup
-git clone https://github.com/yourusername/fraud-bot-detection.git
-cd fraud-bot-detection
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Run tests
-python -m pytest tests/ -v
-
-# Create new feature branch
-git checkout -b feature/your-feature-name
-```
 
 ### Code Style
 
@@ -754,7 +706,7 @@ This project is licensed under the MIT License - see LICENSE file for details.
 ## 👥 Authors & Contributors
 
 - **Project Lead**: Aditya Kumar
-- **Contributors**: [Add names of team members]
+- **Contributors**: Gaganpreet Singh, Ajisth Shukla, Saksham Chopra
 
 ---
 
@@ -796,11 +748,6 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 ---
 
-## ⭐ If you found this helpful, please star the repository!
-
-```
-Made with ❤️ for better web security
-```
 
 ---
 
